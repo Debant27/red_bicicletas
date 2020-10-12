@@ -22,10 +22,6 @@ exports.bicicleta_delete = function(req, res){
     res.status(204).send();
 }
 
-exports.bicicleta_update_get = function(req, res){
-
-}
-
 exports.bicicleta_update_post = function(req, res){
     var bici = Bicicleta.findByID(req.params.id);
     bici.color = req.body.color;
