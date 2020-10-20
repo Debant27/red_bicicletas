@@ -1,19 +1,39 @@
 var Bicicleta = require('../../models/bicicleta');
 var request = require('request');
 var server = require('../../bin/www');
-
-beforeEach(() => { Bicicleta.allBicis = []; });
+var mongoose = require('mongoose');
+var base_url = 'http://localhost:5000/api/bicicletas';
 
 describe('Bicicleta API', () => {
-    describe('GET Bicicletas /', () => {
-        it('Status 200', () => {
-            expect(Bicicleta.allBicis.length).toBe(0);
+    beforeAll(function(done) {
+        mongoose.connection.close().then(() => {        
+            var mongoDB = 'mongodb://localhost/testdb';        
+            mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });        
+            mongoose.set('useCreateIndex', true);        
 
-            var a = new Bicicleta(1, 'rojo', 'urbana', [9.9365915,-84.1080593]);
-            Bicicleta.add(a);
-            
-            request.get('http://localhost:5000/api/bicicletas', function(error, response, body){
+            var db = mongoose.connection;        
+            db.on('error', console.error.bind(console, 'MongoDB connection error: '));        
+            db.once('open', function () {        
+                console.log('We are connected to test database!');
+                done();        
+            });        
+        });        
+    });
+
+    afterEach(function(done){
+        Bicicleta.deleteMany({}, function(err, sucess){
+            if (err) console.log(err);
+            done();
+        });
+    });
+
+    describe('GET Bicicletas /', () => {
+        it('Status 200', (done) => {            
+            request.get(base_url, function(error, response, body){
+                var result = JSON.parse(body);
                 expect(response.statusCode).toBe(200);
+                expect(result.bicicletas.length).toBe(0);
+                done();
             });
         });
     });
@@ -21,15 +41,18 @@ describe('Bicicleta API', () => {
     describe('POST Bicicletas /create', () => {
         it('Status 200', (done) => {
             var headers = {'content-type' : 'application/json'};
-            var a = '{ "id": 1 , "color": "rojo" , "modelo": "urbana" , "lat": 9.9365915 , "lng": -84.1080593}';
+            var aBici = '{ "id": 1 , "color": "rojo" , "modelo": "urbana" , "lat": 9.9365915 , "lng": -84.1080593}';
             request.post({
                 headers: headers,
-                url: 'http://localhost:5000/api/bicicletas/create',
-                body: a
+                url: base_url + '/create',
+                body: aBici
             }, function(error, response, body){
                 expect(response.statusCode).toBe(200);
-                expect(Bicicleta.allBicis.length).toBe(1);
-                expect(Bicicleta.findByID(1).color).toBe("rojo");
+                var bici = JSON.parse(body).bicicleta
+                console.log(bici);
+                expect(bici.color).toBe("rojo");
+                expect(bici.ubicacion[0]).toBe("9.9365915");
+                expect(bici.ubicacion[1]).toBe("-84.1080593");
                 done(); //es lo que espera jasmine para finalizar el  test
             });
         });
