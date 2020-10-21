@@ -3,14 +3,17 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var mongoose = require('mongoose');
+
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+var usuariosRouter = require('./routes/usuarios');
+var tokenRouter = require('./routes/token');
 var bicicletaRouter = require('./routes/bicicletas');
 var bicicletaAPIRouter = require('./routes/api/bicicletas');
 var usuariosAPIRouter = require('./routes/api/usuarios');
 
 var app = express();
+
+var mongoose = require('mongoose');
 
 var mongoDB = 'mongodb://localhost/red_bicicletas';
 mongoose.connect(mongoDB, { useNewUrlParser: true });
@@ -33,7 +36,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //Definir el uso del modulo
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/usuarios', usuariosRouter);
+app.use('/token', tokenRouter);
+
 app.use('/bicicletas', bicicletaRouter);
 app.use('/api/bicicletas', bicicletaAPIRouter);
 app.use('/api/usuarios', usuariosAPIRouter);
