@@ -62,23 +62,24 @@ usuarioSchema.methods.reservar = function(BiciID, desde, hasta, cb){
     reseva.save(cb);
 };
 
-usuarioSchema.methods.enviar_email_bienvenida = function(cb){
+usuarioSchema.methods.resetPassword = function(cb){
     const token = new Token({_userID: this.id, token: crypto.randomBytes(16).toString('hex')});
     const email_destination = this.email;
     token.save(function (err){
-        if (err) {return console.log(err.message);}
+        if (err) {return cb(err);}
 
         const mailOptions = {
             from: 'no-reply@redbicicletas.com',
             to: email_destination,
-            subject: 'Verificación de cuenta',
-            text: 'Hola,\n\n' + 'Por favor, para verificar su cuenta haga click en este link: \n' + 'http://localhost:5000' + '\/token/confirmation\/' + token.token + '.\n'
+            subject: 'Reseteo de password de cuenta',
+            text: 'Hola,\n\n' + 'Por favor, para resetear el password de su cuenta haga click en este link: \n\n' + 'http://localhost:5000' + '\/resetPassword\/' + token.token + '\n\n'
         };
 
         mailer.sendMail(mailOptions, function(err){
-            if (err) {return console.log(err.message);}
-            console.log(`A verification email has been send to ${email_destination}`);
+            if (err) {return cb(err);}
+            console.log(`Se envió un email para resetear el password a: ${email_destination}`);
         });
+        cb(null);
     });
 }
 
